@@ -21,3 +21,7 @@ logs/
 # Local Claude Code tool settings (not part of the project)
 .claude/
 
+# Contest article — published separately (CSDN/Zhihu/Ten-Day Talk), not part of the repo
+ARTICLE.md
+ARTICLE.zh-CN.md
+

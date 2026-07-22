@@ -168,3 +168,10 @@ uv run python scripts/smoke_test.py --mode e2e-b fixtures/furnished_bedroom_0.jp
   覆盖了约 50% 的画面）——这是开放词汇检测相对于微调模型在准确度与泛化能力之间的一个已知取舍。
 - **`SEND_IMAGE_TO_LLM`** 默认关闭——Python 计算出的 `rule_verdicts` 已经是权威依据，把原始照
   片发给 VLM 会增加视觉 token 的预填充开销，直接挤压延迟预算。
+
+## 致谢
+
+感谢 **NVIDIA**、**赞奇科技（XSUPERZONE）** 与 **StepFun（阶跃星辰）** 提供的 DGX Spark 硬件、
+黑客松平台与模型支持，使本项目得以实现。
+
+—— Visioneer 团队（"different vision, united, we are one" / 视角各异，同心同行）

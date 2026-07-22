@@ -187,3 +187,10 @@ the live cloud APIs — not just unit-tested in isolation.
 - **`SEND_IMAGE_TO_LLM`** defaults to `false` — the Python-computed `rule_verdicts` are already
   the authoritative grounding, and sending the raw photo to the VLM adds vision-token prefill
   cost that directly fights the latency budget.
+
+## Acknowledgments
+
+With thanks to **NVIDIA**, **赞奇科技 (XSUPERZONE)**, and **StepFun** for the DGX Spark hardware,
+hackathon platform, and model access that made this project possible.
+
+— Team **Visioneer** ("different vision, united, we are one")
