@@ -150,8 +150,9 @@ uv run python scripts/smoke_test.py --mode e2e-a fixtures/raw_room.jpg "master b
 uv run python scripts/smoke_test.py --mode e2e-b fixtures/furnished_bedroom_0.jpg
 ```
 
-六张真实测试照片（`fixtures/*.jpg`）均已在两个场景下、针对真实云端 API 完整跑通端到端流程，而
-不只是孤立的单元测试。
+八张真实测试照片（`fixtures/*.jpg` 与 `fixtures/*.jpeg`）均已在两个场景下、针对真实云端 API
+完整跑通端到端流程，而不只是孤立的单元测试。每张照片具体覆盖什么场景、有哪些已知的检测边界情
+况，详见 `fixtures/README.md`。
 
 ## 已知局限
 
@@ -166,6 +167,10 @@ uv run python scripts/smoke_test.py --mode e2e-b fixtures/furnished_bedroom_0.jp
   角手机照片会降低准确度。
 - **YOLO-World 检测框偏松**：零样本检测的包围盒有时会明显大于实际物体（实测中一次床铺检测的框
   覆盖了约 50% 的画面）——这是开放词汇检测相对于微调模型在准确度与泛化能力之间的一个已知取舍。
+- **YOLO-World 对多格窗户的漏检**：格栅式的落地窗（每一格被单独检测）可能导致每一小格的置信度
+  都刚好低于默认的 0.15 阈值（在 `fixtures/villa_raw_space.jpeg` 上实测每格约 0.10–0.15），
+  造成明明有窗户却完全漏检——这与上面"检测框偏松"是不同的失败模式（是漏检而非框不准），在调整
+  置信度阈值前值得了解。
 - **`SEND_IMAGE_TO_LLM`** 默认关闭——Python 计算出的 `rule_verdicts` 已经是权威依据，把原始照
   片发给 VLM 会增加视觉 token 的预填充开销，直接挤压延迟预算。
 

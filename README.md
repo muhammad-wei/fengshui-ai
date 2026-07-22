@@ -164,8 +164,9 @@ uv run python scripts/smoke_test.py --mode e2e-a fixtures/raw_room.jpg "master b
 uv run python scripts/smoke_test.py --mode e2e-b fixtures/furnished_bedroom_0.jpg
 ```
 
-All six fixture photos (`fixtures/*.jpg`) have been run end to end through both scenarios against
-the live cloud APIs — not just unit-tested in isolation.
+All eight fixture photos (`fixtures/*.jpg` and `fixtures/*.jpeg`) have been run end to end through
+both scenarios against the live cloud APIs — not just unit-tested in isolation. See
+`fixtures/README.md` for what each photo covers, including known detection edge cases.
 
 ## Known limitations
 
@@ -184,6 +185,11 @@ the live cloud APIs — not just unit-tested in isolation.
 - **YOLO-World bounding-box looseness**: zero-shot detection boxes are sometimes noticeably
   larger than the actual object (observed on a real bed detection spanning ~50% of the frame) —
   a known accuracy/generality tradeoff of open-vocabulary detection versus a fine-tuned model.
+- **YOLO-World multi-pane window misses**: a grid-style floor-to-ceiling window (each pane
+  detected separately) can have every individual pane score just under the default 0.15
+  confidence threshold (observed ~0.10–0.15 per pane on `fixtures/villa_raw_space.jpeg`), causing
+  a full miss on an obviously-present window rather than one loose box — a different failure mode
+  from the general looseness above, worth knowing about before tuning the threshold.
 - **`SEND_IMAGE_TO_LLM`** defaults to `false` — the Python-computed `rule_verdicts` are already
   the authoritative grounding, and sending the raw photo to the VLM adds vision-token prefill
   cost that directly fights the latency budget.
