@@ -14,17 +14,18 @@ class StepClient:
         # See deepseek_client.py — OpenAI() raises on an empty-string key at construction time.
         self._client = OpenAI(api_key=config.STEP_API_KEY or "unset", base_url=config.STEP_BASE_URL)
 
-    def format_json(self, scenario: str, facts: dict, draft_advice: str) -> str | None:
+    def format_json(self, scenario: str, facts: dict, draft_advice: str, language: str = "en") -> str | None:
         format_instruction = (
             "You are a strict JSON formatter. Given the rule base, the facts, and a draft "
             "of the advice, output ONLY a single valid JSON object matching the schema "
-            "described in the system prompt. No prose, no markdown fences."
+            "described in the system prompt. No prose, no markdown fences. Preserve the draft's "
+            "language for all natural-language string values — do not translate it."
         )
         try:
             resp = self._client.chat.completions.create(
                 model=config.STEP_MODEL,
                 messages=[
-                    {"role": "system", "content": build_system_prompt(scenario) + "\n\n" + format_instruction},
+                    {"role": "system", "content": build_system_prompt(scenario, language) + "\n\n" + format_instruction},
                     {"role": "user", "content": f"Draft advice:\n{draft_advice}"},
                 ],
                 temperature=0.1,

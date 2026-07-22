@@ -50,7 +50,10 @@ FEW_SHOT_B = {
 }
 
 
-def build_system_prompt(scenario: str) -> str:
+LANGUAGE_NAMES = {"en": "English", "zh": "Simplified Chinese (简体中文)"}
+
+
+def build_system_prompt(scenario: str, language: str = "en") -> str:
     rule_base = load_rule_base()
     schema_hint = (
         '{"orientation": str, "placements": [{"item": str, "wall": str, "bbox_frac": [x1,y1,x2,y2], "rationale": str}], "summary_text": str}'
@@ -58,6 +61,7 @@ def build_system_prompt(scenario: str) -> str:
         else '{"issues": [{"rule": str, "detection_refs": [int], "severity": "low|med|high", "explanation": str}], "dos": [str,str,str], "donts": [str,str,str], "summary_text": str}'
     )
     few_shot = FEW_SHOT_A if scenario == "A" else FEW_SHOT_B
+    language_name = LANGUAGE_NAMES.get(language, "English")
 
     return f"""You are a Feng Shui interior consultant. You will be given:
 1. A quantified Feng Shui rule base (JSON).
@@ -68,10 +72,15 @@ You must NOT invent or recompute any geometry yourself — only narrate and act 
 rule_verdicts you are given. Respond with a single JSON object matching this shape:
 {schema_hint}
 
+JSON keys and rule ids/enum values (e.g. "wall", "severity") must stay exactly as shown above —
+only the natural-language string VALUES (rationale, explanation, dos, donts, summary_text,
+orientation) must be written in {language_name}.
+
 Rule base:
 {json.dumps(rule_base, indent=2)}
 
-Example input/output pair:
+Example input/output pair (shown in English regardless of target language — only follow its
+JSON structure, not its language):
 Facts: {json.dumps(few_shot["facts"], indent=2)}
 Output: {json.dumps(few_shot["output"], indent=2)}
 """

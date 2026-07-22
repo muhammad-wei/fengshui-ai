@@ -16,12 +16,12 @@ class DeepSeekClient:
         # (caught below) the first time a call is actually made.
         self._client = OpenAI(api_key=config.DEEPSEEK_API_KEY or "unset", base_url=config.DEEPSEEK_BASE_URL)
 
-    def narrate(self, facts: dict, scenario: str) -> str | None:
+    def narrate(self, facts: dict, scenario: str, language: str = "en") -> str | None:
         try:
             resp = self._client.chat.completions.create(
                 model=config.DEEPSEEK_MODEL,
                 messages=[
-                    {"role": "system", "content": build_system_prompt(scenario)},
+                    {"role": "system", "content": build_system_prompt(scenario, language)},
                     {"role": "user", "content": build_user_message(facts)},
                 ],
                 temperature=0.1,

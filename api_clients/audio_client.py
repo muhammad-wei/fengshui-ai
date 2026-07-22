@@ -13,6 +13,7 @@ import config
 dashscope.api_key = config.DASHSCOPE_API_KEY
 
 DEFAULT_VOICE = "en-US-AriaNeural"
+VOICE_BY_LANGUAGE = {"en": "en-US-AriaNeural", "zh": "zh-CN-XiaoxiaoNeural"}
 
 
 def transcribe(audio_path: str) -> str | None:

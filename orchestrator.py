@@ -8,7 +8,6 @@ import cv2
 import numpy as np
 
 import config
-from api_clients.audio_client import speak_text
 from api_clients.deepseek_client import DeepSeekClient
 from api_clients.step_client import StepClient
 from api_clients.wan_client import WanClient
@@ -21,21 +20,34 @@ GOLDEN_FALLBACK_A = "assets/golden_scenario_a.jpg"
 GOLDEN_FALLBACK_B = "assets/golden_scenario_b.jpg"
 
 
-def _fallback_layout_plan(facts: dict) -> LayoutPlan:
-    return LayoutPlan(
-        orientation="unknown",
-        placements=[],
-        summary_text="We couldn't generate a detailed layout this time — please try again with a clearer photo of the room's doors and windows.",
-    )
+_FALLBACK_TEXT = {
+    "en": {
+        "layout_summary": "We couldn't generate a detailed layout this time — please try again with a clearer photo of the room's doors and windows.",
+        "adjustment_summary": "We couldn't analyze this photo in detail this time — here is general Feng Shui guidance instead.",
+        "dos": ["Keep the main walking path clear", "Add a plant near sharp corners", "Keep mirrors away from the bed"],
+        "donts": ["Don't place the bed facing the door", "Don't sit with your back to the door", "Don't block the entrance"],
+        "dos_header": "**Do's**",
+        "donts_header": "**Don'ts**",
+    },
+    "zh": {
+        "layout_summary": "这次未能生成详细的布局方案——请换一张能清楚看到房间门窗的照片再试一次。",
+        "adjustment_summary": "这次未能详细分析这张照片——以下是通用的风水建议。",
+        "dos": ["保持主要通道畅通", "在尖锐墙角附近摆放绿植", "让镜子远离床铺"],
+        "donts": ["不要让床正对房门", "不要背对房门而坐", "不要堵塞入口"],
+        "dos_header": "**宜**",
+        "donts_header": "**忌**",
+    },
+}
 
 
-def _fallback_adjustment_report(facts: dict) -> AdjustmentReport:
-    return AdjustmentReport(
-        issues=[],
-        dos=["Keep the main walking path clear", "Add a plant near sharp corners", "Keep mirrors away from the bed"],
-        donts=["Don't place the bed facing the door", "Don't sit with your back to the door", "Don't block the entrance"],
-        summary_text="We couldn't analyze this photo in detail this time — here is general Feng Shui guidance instead.",
-    )
+def _fallback_layout_plan(facts: dict, language: str = "en") -> LayoutPlan:
+    t = _FALLBACK_TEXT.get(language, _FALLBACK_TEXT["en"])
+    return LayoutPlan(orientation="unknown", placements=[], summary_text=t["layout_summary"])
+
+
+def _fallback_adjustment_report(facts: dict, language: str = "en") -> AdjustmentReport:
+    t = _FALLBACK_TEXT.get(language, _FALLBACK_TEXT["en"])
+    return AdjustmentReport(issues=[], dos=t["dos"], donts=t["donts"], summary_text=t["adjustment_summary"])
 
 
 class Orchestrator:
@@ -51,25 +63,25 @@ class Orchestrator:
         resized = cv2.resize(image_rgb, config.IMAGE_RESIZE)
         return cv2.cvtColor(resized, cv2.COLOR_RGB2BGR)
 
-    def _get_plan(self, facts: dict, scenario: str, model_cls):
+    def _get_plan(self, facts: dict, scenario: str, model_cls, language: str = "en"):
         t0 = time.perf_counter()
-        draft = self.deepseek.narrate(facts, scenario)
+        draft = self.deepseek.narrate(facts, scenario, language)
         t1 = time.perf_counter()
         result = None
         if draft is not None:
-            formatted = self.step.format_json(scenario, facts, draft)
+            formatted = self.step.format_json(scenario, facts, draft, language)
             result = validate_and_repair(formatted, model_cls) if formatted else None
             if result is None and formatted is not None:
                 # one retry with a corrective nudge
-                retry_draft = self.deepseek.narrate(facts, scenario)
+                retry_draft = self.deepseek.narrate(facts, scenario, language)
                 if retry_draft:
-                    formatted_retry = self.step.format_json(scenario, facts, retry_draft)
+                    formatted_retry = self.step.format_json(scenario, facts, retry_draft, language)
                     result = validate_and_repair(formatted_retry, model_cls) if formatted_retry else None
         t2 = time.perf_counter()
         timing = {"deepseek_s": t1 - t0, "step_s": t2 - t1}
         return result, timing
 
-    def run_scenario_a(self, image_rgb: np.ndarray, room_purpose: str) -> dict:
+    def run_scenario_a(self, image_rgb: np.ndarray, room_purpose: str, language: str = "en") -> dict:
         t_start = time.perf_counter()
         image = self._prep_image(image_rgb)
 
@@ -80,9 +92,9 @@ class Orchestrator:
 
         facts = build_scene_facts(det_dicts, image, "A", self.rule_base, room_purpose)
 
-        plan, llm_timing = self._get_plan(facts, "A", LayoutPlan)
+        plan, llm_timing = self._get_plan(facts, "A", LayoutPlan, language)
         if plan is None:
-            plan = _fallback_layout_plan(facts)
+            plan = _fallback_layout_plan(facts, language)
 
         t2 = time.perf_counter()
         image_url = self.wan.text_to_image(plan.summary_text)
@@ -90,12 +102,9 @@ class Orchestrator:
             image_url = GOLDEN_FALLBACK_A
         t3 = time.perf_counter()
 
-        audio_path = speak_text(plan.summary_text)
-
         return {
             "image": image_url,
             "text": plan.summary_text,
-            "audio": audio_path,
             "timing": {
                 "perception_s": t1 - t0,
                 **llm_timing,
@@ -104,7 +113,7 @@ class Orchestrator:
             },
         }
 
-    def run_scenario_b(self, image_rgb: np.ndarray, image_path: str) -> dict:
+    def run_scenario_b(self, image_rgb: np.ndarray, image_path: str, language: str = "en") -> dict:
         t_start = time.perf_counter()
         image = self._prep_image(image_rgb)
 
@@ -115,9 +124,9 @@ class Orchestrator:
 
         facts = build_scene_facts(det_dicts, image, "B", self.rule_base, None)
 
-        report, llm_timing = self._get_plan(facts, "B", AdjustmentReport)
+        report, llm_timing = self._get_plan(facts, "B", AdjustmentReport, language)
         if report is None:
-            report = _fallback_adjustment_report(facts)
+            report = _fallback_adjustment_report(facts, language)
 
         t2 = time.perf_counter()
         # Use the actionable "dos" (concrete edits) as the Wan instruction, not the issues'
@@ -130,16 +139,14 @@ class Orchestrator:
             image_url = GOLDEN_FALLBACK_B
         t3 = time.perf_counter()
 
-        checklist_md = "**Do's**\n" + "\n".join(f"- {d}" for d in report.dos)
-        checklist_md += "\n\n**Don'ts**\n" + "\n".join(f"- {d}" for d in report.donts)
-
-        audio_path = speak_text(report.summary_text)
+        t = _FALLBACK_TEXT.get(language, _FALLBACK_TEXT["en"])
+        checklist_md = f"{t['dos_header']}\n" + "\n".join(f"- {d}" for d in report.dos)
+        checklist_md += f"\n\n{t['donts_header']}\n" + "\n".join(f"- {d}" for d in report.donts)
 
         return {
             "image": image_url,
             "text": report.summary_text,
             "checklist": checklist_md,
-            "audio": audio_path,
             "timing": {
                 "perception_s": t1 - t0,
                 **llm_timing,
