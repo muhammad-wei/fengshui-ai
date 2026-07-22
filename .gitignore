@@ -1,0 +1,23 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+.env
+
+# Logs and local model weights (never commit — huge, and fetched via scripts/download_step_model.sh)
+logs/
+*.gguf
+*.pt
+
+# Editor/OS
+.DS_Store
+
+# Local Claude Code tool settings (not part of the project)
+.claude/
+

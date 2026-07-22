@@ -1,0 +1,72 @@
+[
+  {
+    "id": "solid_back_empty_front",
+    "name": "Solid Back, Empty Front",
+    "criterion": "Headboard wall must be a windowless & doorless continuous wall surface.",
+    "scenario": "raw",
+    "params": {}
+  },
+  {
+    "id": "open_bright_hall",
+    "name": "Open Bright Hall",
+    "criterion": "Obstacle-free area in front of sofa/bed must exceed a fraction of the horizontal field of view.",
+    "scenario": "furnished",
+    "params": { "min_open_ratio": 0.4 }
+  },
+  {
+    "id": "door_window_alignment",
+    "name": "Door-Window Direct Alignment (Piercing Sha)",
+    "criterion": "Angle between the door-center-to-window-center line and the horizontal must be below a threshold to flag direct alignment.",
+    "scenario": "furnished",
+    "params": { "max_angle_deg": 15 }
+  },
+  {
+    "id": "mirror_facing_bed_or_door",
+    "name": "Mirror Not Facing Bed/Door",
+    "criterion": "IoU between mirror bbox and bed/door bbox above a threshold indicates the mirror reflects directly onto the bed or door.",
+    "scenario": "furnished",
+    "params": { "min_iou": 0.1 }
+  },
+  {
+    "id": "beam_pressing_down",
+    "name": "Beam Pressing Down",
+    "criterion": "A horizontal dark band spanning a large fraction of the furniture's width, directly above a sofa/bed, indicates an exposed beam.",
+    "scenario": "furnished",
+    "params": { "min_width_ratio": 0.5, "dark_delta": 30 }
+  },
+  {
+    "id": "left_high_right_low",
+    "name": "Left High, Right Low",
+    "criterion": "Relative to the seated/facing orientation, the average height (prominence) of objects on the left side should exceed the right side.",
+    "scenario": "both",
+    "params": {}
+  },
+  {
+    "id": "color_balance",
+    "name": "Color Balance",
+    "criterion": "Excessive warm-hue (red/orange) coverage should be balanced by recommending cool tones (blue/green).",
+    "scenario": "furnished",
+    "params": { "warm_ratio_threshold": 0.5 }
+  },
+  {
+    "id": "plants_neutralize_sha",
+    "name": "Plants to Neutralize Sha",
+    "criterion": "Recommend broad-leaf plants near detected sharp wall corners to soften their effect.",
+    "scenario": "furnished",
+    "params": {}
+  },
+  {
+    "id": "dynamic_static_separation",
+    "name": "Dynamic-Static Separation",
+    "criterion": "The dining table should not be placed directly adjacent to a bathroom door.",
+    "scenario": "raw",
+    "params": { "min_distance_frac": 0.15 }
+  },
+  {
+    "id": "wealth_area_bright",
+    "name": "Wealth Area Should Be Bright",
+    "criterion": "The diagonal corner opposite the entrance (the 'Ming Wealth Corner') should have the highest brightness/luminance among the room's regions.",
+    "scenario": "both",
+    "params": {}
+  }
+]
