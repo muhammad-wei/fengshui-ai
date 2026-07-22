@@ -193,4 +193,4 @@ the live cloud APIs — not just unit-tested in isolation.
 With thanks to **NVIDIA**, **赞奇科技 (XSUPERZONE)**, and **StepFun** for the DGX Spark hardware,
 hackathon platform, and model access that made this project possible.
 
-— Team **Visioneer** ("different vision, united, we are one")
+— Team **Visioneer** ("Different vision united, we are one.")

@@ -174,4 +174,4 @@ uv run python scripts/smoke_test.py --mode e2e-b fixtures/furnished_bedroom_0.jp
 感谢 **NVIDIA**、**赞奇科技（XSUPERZONE）** 与 **StepFun（阶跃星辰）** 提供的 DGX Spark 硬件、
 黑客松平台与模型支持，使本项目得以实现。
 
-—— Visioneer 团队（"different vision, united, we are one" / 视角各异，同心同行）
+—— Visioneer 团队（"Different vision united, we are one." / 视角各异，同心同行）
